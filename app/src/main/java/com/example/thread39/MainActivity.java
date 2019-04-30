@@ -1,6 +1,8 @@
 package com.example.thread39;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -11,6 +13,24 @@ import android.view.MenuItem;
 import android.widget.EditText;
 
 public class MainActivity extends AppCompatActivity {
+
+    Handler pnjThreadHandler = new Handler()
+    {
+      // Alt+Insert - override
+
+        /**
+         * Subclasses must implement this to receive messages.
+         *
+         * @param msg
+         */
+        @Override
+        public void handleMessage(Message msg) {
+//            super.handleMessage(msg);
+            // NB never put user-interface-altering code within a thread - use a handler
+            EditText pnjText = (EditText) findViewById(R.id.pnj_text);
+            pnjText.setText("Clicked!");
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,24 +52,50 @@ public class MainActivity extends AppCompatActivity {
     // bespoke onClick method
     public void clickButton(View view)
     {
-        // to demonstrate, wait 10s, to simulate a lengthy calculation/query
-        long futureTime = System.currentTimeMillis() + 10000;
-        while(System.currentTimeMillis() < futureTime)
-        {
-            synchronized (this)    // prevent multiple threads from colliding
-            {
-                try
-                {
-                    wait(futureTime - System.currentTimeMillis());
-                } catch (Exception e)
-                {
 
+        Runnable r = new Runnable()
+        {
+            // by Alt+Insert - override
+            /**
+             * When an object implementing interface <code>Runnable</code> is used
+             * to create a thread, starting the thread causes the object's
+             * <code>run</code> method to be called in that separately executing
+             * thread.
+             * <p>
+             * The general contract of the method <code>run</code> is that it may
+             * take any action whatsoever.
+             *
+             * @see Thread#run()
+             */
+            @Override
+            public void run() {
+                // to demonstrate, wait 10s, to simulate a lengthy calculation/query
+                // could be making an API call in here, or similar
+                long futureTime = System.currentTimeMillis() + 10000;
+                while(System.currentTimeMillis() < futureTime)
+                {
+                    synchronized (this)    // prevent multiple threads from colliding
+                    {
+                        try
+                        {
+                            wait(futureTime - System.currentTimeMillis());
+                        } catch (Exception e)
+                        {
+
+                        }
+                    }
                 }
+                pnjThreadHandler.sendEmptyMessage(0);   // trigger handler (with nil parameter)
             }
-        }
-        EditText pnjText = (EditText) findViewById(R.id.pnj_text);
-        pnjText.setText("Clicked!");
+        };
+
+        Thread pnjThread = new Thread(r);       // use runnable with code defined above
+        pnjThread.start();
+
     }
+
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
