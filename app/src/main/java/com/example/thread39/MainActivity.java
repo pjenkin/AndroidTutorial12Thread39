@@ -8,6 +8,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -26,6 +27,28 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+    }
+
+    // bespoke onClick method
+    public void clickButton(View view)
+    {
+        // to demonstrate, wait 10s, to simulate a lengthy calculation/query
+        long futureTime = System.currentTimeMillis() + 10000;
+        while(System.currentTimeMillis() < futureTime)
+        {
+            synchronized (this)    // prevent multiple threads from colliding
+            {
+                try
+                {
+                    wait(futureTime - System.currentTimeMillis());
+                } catch (Exception e)
+                {
+
+                }
+            }
+        }
+        EditText pnjText = (EditText) findViewById(R.id.pnj_text);
+        pnjText.setText("Clicked!");
     }
 
     @Override
